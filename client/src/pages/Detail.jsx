@@ -1,94 +1,49 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
-
+import { useDispatch, useSelector } from 'react-redux';
 import Cart from '../components/Cart';
-import { useStoreContext } from '../utils/GlobalState';
-import {
-  REMOVE_FROM_CART,
-  UPDATE_CART_QUANTITY,
-  ADD_TO_CART,
-  UPDATE_PRODUCTS,
-} from '../utils/actions';
 import { QUERY_PRODUCTS } from '../utils/queries';
 import { idbPromise } from '../utils/helpers';
+import { updateProducts } from '../store/slices/productSlice';
+import { addToCart, removeFromCart, updateCartQuantity } from '../store/slices/cartSlice';
 import spinner from '../assets/spinner.gif';
 
 function Detail() {
-  const [state, dispatch] = useStoreContext();
+  const dispatch = useDispatch();
   const { id } = useParams();
-
   const [currentProduct, setCurrentProduct] = useState({});
-
+  
+  const { products } = useSelector(state => state.products);
+  const { cart } = useSelector(state => state.cart);
+  
   const { loading, data } = useQuery(QUERY_PRODUCTS);
 
-  const { products, cart } = state;
-
   useEffect(() => {
-    // already in global store
     if (products.length) {
-      const product = products.find((product) => product._id === id);
-
-      const item = {
-        image: product.image,
-        name: product.name,
-        _id: product._id,
-        price: product.price,
-        quantity: product.quantity,
-      };
-      
-      setCurrentProduct(item);
-    }
-    // retrieved from server
-    else if (data) {
-      dispatch({
-        type: UPDATE_PRODUCTS,
-        products: data.products,
-      });
-
+      setCurrentProduct(products.find(product => product._id === id));
+    } else if (data) {
+      dispatch(updateProducts(data.products));
       data.products.forEach((product) => {
         idbPromise('products', 'put', product);
       });
     }
-    // get cache from idb
-    else if (!loading) {
-      idbPromise('products', 'get').then((indexedProducts) => {
-        dispatch({
-          type: UPDATE_PRODUCTS,
-          products: indexedProducts,
-        });
-      });
-    }
   }, [products, data, loading, dispatch, id]);
 
-  const addToCart = () => {
+  const handleAddToCart = () => {
     const itemInCart = cart.find((cartItem) => cartItem._id === id);
     if (itemInCart) {
-      dispatch({
-        type: UPDATE_CART_QUANTITY,
+      dispatch(updateCartQuantity({
         _id: id,
-        purchaseQuantity: parseInt(itemInCart.purchaseQuantity) + 1,
-      });
-      idbPromise('cart', 'put', {
-        ...itemInCart,
-        purchaseQuantity: parseInt(itemInCart.purchaseQuantity) + 1,
-      });
+        purchaseQuantity: parseInt(itemInCart.purchaseQuantity) + 1
+      }));
     } else {
-      dispatch({
-        type: ADD_TO_CART,
-        product: { ...currentProduct, purchaseQuantity: 1 },
-      });
-      idbPromise('cart', 'put', { ...currentProduct, purchaseQuantity: 1 });
+      dispatch(addToCart({ ...currentProduct, purchaseQuantity: 1 }));
     }
   };
 
-  const removeFromCart = () => {
-    dispatch({
-      type: REMOVE_FROM_CART,
-      _id: currentProduct._id,
-    });
-
-    idbPromise('cart', 'delete', { ...currentProduct });
+  const handleRemoveFromCart = () => {
+    dispatch(removeFromCart(currentProduct._id));
   };
 
   return (

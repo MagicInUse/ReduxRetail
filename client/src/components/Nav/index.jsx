@@ -1,10 +1,19 @@
-import Auth from "../../utils/auth";
+import { useSelector, useDispatch } from 'react-redux';
 import { Link } from "react-router-dom";
+import { logout } from '../../store/slices/authSlice';
+import Auth from "../../utils/auth";
 
 function Nav() {
+  const dispatch = useDispatch();
+  const { user } = useSelector(state => state.auth);
+
+  const handleLogout = () => {
+    Auth.logout();
+    dispatch(logout());
+  };
 
   function showNavigation() {
-    if (Auth.loggedIn()) {
+    if (user) {
       return (
         <ul className="flex-row">
           <li className="mx-1">
