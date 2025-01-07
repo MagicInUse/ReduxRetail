@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from "react-router-dom";
-import { addToCart, updateCartQuantity } from "../../store/slices/cartSlice";
+import { addToCart } from "../../store/slices/cartSlice";
 import { idbPromise } from "../../utils/helpers";
 
 function ProductItem(item) {
@@ -9,9 +9,10 @@ function ProductItem(item) {
 
   const addToCartHandler = () => {
     const itemInCart = cart.find((cartItem) => cartItem._id === item._id);
+    
     if (itemInCart) {
-      dispatch(updateCartQuantity({
-        _id: item._id,
+      dispatch(addToCart({
+        ...itemInCart,
         purchaseQuantity: parseInt(itemInCart.purchaseQuantity) + 1
       }));
       idbPromise('cart', 'put', {

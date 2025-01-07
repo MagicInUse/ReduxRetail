@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
+import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import { store } from './store/store';
 import './index.css';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -13,6 +14,11 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Success from './pages/Success';
 import OrderHistory from './pages/OrderHistory';
+
+const client = new ApolloClient({
+  uri: '/graphql',
+  cache: new InMemoryCache()
+});
 
 const router = createBrowserRouter([
   {
@@ -44,7 +50,9 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <Provider store={store}>
-    <RouterProvider router={router} />
-  </Provider>
-)
+  <ApolloProvider client={client}>
+    <Provider store={store}>
+      <RouterProvider router={router} />
+    </Provider>
+  </ApolloProvider>
+);
