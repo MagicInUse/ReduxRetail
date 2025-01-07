@@ -14,23 +14,39 @@ const stripePromise = loadStripe('pk_test_TYooMQauvdEDq54NiTphI7jx');
 const Cart = () => {
   const dispatch = useDispatch();
   const { cart, cartOpen } = useSelector(state => state.cart);
-  
   const [getCheckout, { data }] = useLazyQuery(QUERY_CHECKOUT);
+  
+  const handleToggleCart = () => {
+    dispatch(toggleCart());
+  };
 
   useEffect(() => {
     async function getCart() {
       const cart = await idbPromise('cart', 'get');
-      dispatch(addMultipleToCart(cart));
+      dispatch(addMultipleToCart(cart || []));
     }
-
     if (!cart.length) {
       getCart();
     }
   }, [cart.length, dispatch]);
 
-  const handleToggleCart = () => {
-    dispatch(toggleCart());
-  };
+  // Add this new useEffect to sync with IndexedDB
+  useEffect(() => {
+    if (cart.length) {
+      cart.forEach(item => {
+        idbPromise('cart', 'put', item);
+      });
+    }
+  }, [cart]);
+
+  // Add this new useEffect for stripe checkout
+  useEffect(() => {
+    if (data) {
+      stripePromise.then((res) => {
+        res.redirectToCheckout({ sessionId: data.checkout.session });
+      });
+    }
+  }, [data]);
 
   function calculateTotal() {
     let sum = 0;
