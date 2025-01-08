@@ -12,41 +12,6 @@ function Nav() {
     dispatch(logout());
   };
 
-  function showNavigation() {
-    if (user) {
-      return (
-        <ul className="flex-row">
-          <li className="mx-1">
-            <Link to="/orderHistory">
-              Order History
-            </Link>
-          </li>
-          <li className="mx-1">
-            {/* this is not using the Link component to logout or user and then refresh the application to the start */}
-            <a href="/" onClick={() => Auth.logout()}>
-              Logout
-            </a>
-          </li>
-        </ul>
-      );
-    } else {
-      return (
-        <ul className="flex-row">
-          <li className="mx-1">
-            <Link to="/signup">
-              Signup
-            </Link>
-          </li>
-          <li className="mx-1">
-            <Link to="/login">
-              Login
-            </Link>
-          </li>
-        </ul>
-      );
-    }
-  }
-
   return (
     <header className="flex-row px-1">
       <h1>
@@ -55,9 +20,39 @@ function Nav() {
           -Shop-Shop
         </Link>
       </h1>
-
       <nav>
-        {showNavigation()}
+        {user ? (
+          <ul className="flex-row">
+            <li className="mx-1">
+              <Link to="/orderHistory">Order History</Link>
+            </li>
+            <li className="mx-1">
+              <button
+                onClick={handleLogout}
+                className="btn"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: '0',
+                  color: '#1a1a1a',
+                  textDecoration: 'underline',
+                  cursor: 'pointer'
+                }}
+              >
+                Logout
+              </button>
+            </li>
+          </ul>
+        ) : (
+          <ul className="flex-row">
+            <li className="mx-1">
+              <Link to="/signup">Signup</Link>
+            </li>
+            <li className="mx-1">
+              <Link to="/login">Login</Link>
+            </li>
+          </ul>
+        )}
       </nav>
     </header>
   );

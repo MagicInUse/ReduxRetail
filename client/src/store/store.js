@@ -4,7 +4,7 @@ import { cartReducer } from './slices/cartSlice';
 import { categoryReducer } from './slices/categorySlice';
 import { productReducer } from './slices/productSlice';
 
-export const store = configureStore({
+const store = configureStore({
   reducer: {
     auth: authReducer,
     cart: cartReducer,
@@ -16,3 +16,5 @@ export const store = configureStore({
       serializableCheck: false
     })
 });
+
+export { store };

@@ -1,7 +1,8 @@
 import { GraphQLError } from 'graphql';
 import jwt from 'jsonwebtoken';
+import 'dotenv/config';
 
-const secret = 'mysecretssshhhhhhh';
+const secret = process.env.JWT_SECRET || '';
 const expiration = '2h';
 
 export const AuthenticationError = new GraphQLError('Could not authenticate user.', {
@@ -10,11 +11,11 @@ export const AuthenticationError = new GraphQLError('Could not authenticate user
   },
 });
 
-export const authMiddleware = async ({ req }) => {
-  // allows token to be sent via req.body, req.query, or headers
+export const authMiddleware = function ({ req }) {
+  // Allow token from multiple sources
   let token = req.body.token || req.query.token || req.headers.authorization;
 
-  // ["Bearer", "<tokenvalue>"]
+  // Clean up Bearer token
   if (req.headers.authorization) {
     token = token.split(' ').pop().trim();
   }
@@ -24,17 +25,18 @@ export const authMiddleware = async ({ req }) => {
   }
 
   try {
+    // Verify token and attach user data to request
     const { data } = jwt.verify(token, secret, { maxAge: expiration });
     req.user = data;
-  } catch {
-    console.log('Invalid token');
+  } catch (error) {
+    console.log('Invalid token:', error.message);
+    throw new AuthenticationError('Invalid token!');
   }
 
   return req;
-}
+};
 
-export const signToken = async ({ firstName, email, _id }) => {
+export const signToken = function ({ firstName, email, _id }) {
   const payload = { firstName, email, _id };
-
   return jwt.sign({ data: payload }, secret, { expiresIn: expiration });
-}
+};
